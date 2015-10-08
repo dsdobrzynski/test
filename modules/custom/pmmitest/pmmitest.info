@@ -1,6 +1,6 @@
-name = "Default D7"
+name = "pmmitest D7"
 description = "Top module for pmmitest d7 project"
-package = "Default D7"
+package = "pmmitest D7"
 core = "7.x"
 
 dependencies[] = admin_menu
@@ -10,5 +10,6 @@ dependencies[] = drop_ship
 dependencies[] = features
 dependencies[] = kw_manifests
 dependencies[] = module_filter
+dependencies[] = pmmi_distributor_content_type
 dependencies[] = wysiwyg_advanced_profile
 dependencies[] = wysiwyg_filtered_profile

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the PMMI Distributor Content Type feature.
+ */
+
+include_once 'pmmi_distributor_content_type.features.inc';
