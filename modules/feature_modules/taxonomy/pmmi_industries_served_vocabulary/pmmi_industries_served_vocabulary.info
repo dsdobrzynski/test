@@ -1,0 +1,9 @@
+name = PMMI Industries Served Vocabulary
+core = 7.x
+package = PMMI Taxonomy
+version = 7.x-1.0-alpha1
+dependencies[] = features
+dependencies[] = taxonomy
+features[features_api][] = api:2
+features[taxonomy][] = industries_served
+project path = sites/all/modules/feature_modules/taxonomy
