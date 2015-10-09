@@ -5,6 +5,7 @@ version = 7.x-1.0-alpha1
 dependencies[] = addressfield
 dependencies[] = features
 dependencies[] = link
+dependencies[] = options
 dependencies[] = pmmi_industries_served_vocabulary
 features[features_api][] = api:2
 features[field_base][] = field_distributor_address
