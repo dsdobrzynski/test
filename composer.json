@@ -65,6 +65,10 @@
         },
         {
             "type": "vcs",
+            "url": "https://github.com/promet/drupal-tangler.git"
+        },
+        {
+            "type": "vcs",
             "url": "git@github.com:promet/kw_manifests"
         },
         {
@@ -94,11 +98,10 @@
         "ckeditor/ckeditor": "dev-full/stable",
         "composer/composer": "~1.0@alpha",
         "drupal/addressfield": "~7.1.0",
-        "drupal/drupal": "~7.0",
-        "drupal/tangler": "~0.1.9",
         "drupal/admin_menu": "~7.3.0@rc",
         "drupal/ckeditor": "~7.1.0",
         "drupal/drop_ship": "1.*",
+        "drupal/drupal": "~7.0",
         "drupal/drupal-library-installer-plugin": "~0.1",
         "drupal/diff": "~7.3.0",
         "drupal/entity": "~7.1.0",
@@ -110,6 +113,7 @@
         "drupal/omega": "~7.4.0",
         "drupal/registry_rebuild": "~7.2.0",
         "drupal/strongarm": "~7.2.0",
+        "drupal/tangler": "~0.2.0",
         "drupal/views": "~7.3.0",
         "drush/drush": "~6.0.0",
         "winmillwill/settings_compile": "~2.1.1"

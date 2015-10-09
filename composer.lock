@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "d9747a76e9f1b298ece771edd1bc958c",
-    "content-hash": "ba3eeb300842a67af04b822dadde01d0",
+    "hash": "841903d9ab0d7d8eafd2befec1bd5b43",
+    "content-hash": "14236bc756047d1c82b642bfcf0bd63e",
     "packages": [
         {
             "name": "ckeditor/ckeditor",
@@ -682,16 +682,16 @@
         },
         {
             "name": "drupal/tangler",
-            "version": "0.1.9",
+            "version": "0.2.5",
             "source": {
                 "type": "git",
-                "url": "https://github.com/winmillwill/drupal-tangler.git",
-                "reference": "9d3d489107dd7a532ef8f88da57eae7e7c9d360e"
+                "url": "https://github.com/promet/drupal-tangler.git",
+                "reference": "f90c4d68e1f8e0536b5bd454a198b62cddfd1550"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/winmillwill/drupal-tangler/zipball/9d3d489107dd7a532ef8f88da57eae7e7c9d360e",
-                "reference": "9d3d489107dd7a532ef8f88da57eae7e7c9d360e",
+                "url": "https://api.github.com/repos/promet/drupal-tangler/zipball/f90c4d68e1f8e0536b5bd454a198b62cddfd1550",
+                "reference": "f90c4d68e1f8e0536b5bd454a198b62cddfd1550",
                 "shasum": ""
             },
             "require": {
@@ -709,8 +709,11 @@
                     "Drupal\\Tangler\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
-            "time": "2014-09-18 13:54:57"
+            "support": {
+                "source": "https://github.com/promet/drupal-tangler/tree/0.2.5",
+                "issues": "https://github.com/promet/drupal-tangler/issues"
+            },
+            "time": "2015-10-09 05:08:39"
         },
         {
             "name": "drupal/views",
