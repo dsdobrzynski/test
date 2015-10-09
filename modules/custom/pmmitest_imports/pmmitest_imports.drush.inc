@@ -1,183 +1,200 @@
 <?php
 /**
  * @file
- * PG Gardens Approval drush include file.
+ * Main module file for PMMI Test Imports.
  */
 
 /**
- * Implements hook_permission().
- */
-function pg_gardens_approval_permission() {
-  return array(
-    'manage garden approvals' => array(
-      'title' => t('Manage Garden Approvals'),
-      'description' => ('Allows managing garden status (approved, pending, denied)'),
-    ),
-  );
-}
-
-/**
- * Implements hook_menu().
- */
-function pg_gardens_approval_menu() {
+* Implements hook_drush_command().
+*/
+function pmmitest_imports_drush_command() {
   $items = array();
-
-  $items['admin/config/pg-gardens-approval-settings'] = array(
-    'title' => 'PG Gardens Approval',
-    'description' => 'Configuration for the PG Gardens approval module.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('pg_gardens_approval_form'),
-    'access arguments' => array('manage garden approvals'),
-    'file' => 'includes/admin.inc',
-    'file path' => drupal_get_path('module', 'pg_gardens_approval'),
-    'type' => MENU_NORMAL_ITEM,
-  );
-
- return $items;
-}
-
-/**
- * Implements hook_mail().
- */
-function pg_gardens_approval_mail($key, &$message, $params) {
-  $report_csv = views_embed_view('pg_gardens_approval', 'views_data_export_csv');
-  $csv_path = 'public://gardens_approved.csv';
-  file_unmanaged_save_data($report_csv, $csv_path, FILE_EXISTS_REPLACE);
-  $date_generated = date('Y-m-d', time());
-  $date_start = date('M+d+Y', time() - 518400);
-  $date_end = date('M+d+Y', time());
-  $options = array(
-    'query' => array(
-      'field_garden_status_value[]' => 'Approved',
-      'field_garden_auto_approved_value' => 1,
-      'field_garden_approval_date_value[min][date]' => $date_start,
-      'field_garden_approval_date_value[max][date]' => $date_end,
+  $items['distributors-import'] = array(
+    'description' => dt('Imports distributors from CSV'),
+    'arguments' => array(
+      'csv' => dt('The path to the csv file (relative to the Drupal root).'),
     ),
-    'absolute' => TRUE,
+    'aliases' => array('dist-im'),
+    'examples' => array(
+      'drush distributors-import sites/default/files/distributors.csv' => dt('Imports distribotrs from the csv file at sites/default/files/distributors.csv.'),
+    ),
   );
-  $report_link = rawurldecode(url('gardens-approval', $options));
-
-  // Default message settings.
-  $message['headers']['MIME-Version'] = '1.0';
-  $message['headers']['Content-Type'] = 'multipart/mixed;';
-  $message['headers']['Content-Type'] = 'text/html;';
-  switch ($key) {
-    case 'weekly_report':
-      $message['subject'] = variable_get('pg_gardens_approval_email_subject');
-      $message['body'][] = t('<p>Please find attached a CSV report of gardens auto-approved in the past week. The report may also be viewed at @report</p>', array('@report' => $report_link));
-      $attachment = array(
-        'filecontent' => file_get_contents($csv_path),
-        'filename' => 'gardens_approved_' . $date_generated . '.csv',
-        'filemime' => 'text/csv',
-      );
-      $message['params']['attachments'][] = $attachment;
-      break;
-  }
-}
-
-/**
- * Sends an e-mail with a report of gardens approved the previous week.
- */
-function pg_gardens_approval_weekly_report_mail_send() {
-  $module = 'pg_gardens_approval';
-  $key = 'weekly_report';
-
-  $to = variable_get('pg_gardens_approval_email_recipients');
-  module_load_include('inc', 'mimemail');
-  $from = mimemail_address(array(
-    'name' => variable_get('site_name', 'People\'s Garden'),
-    'mail' => variable_get('site_mail', 'admin@example.com'),
-  ));
-  $params = array();
-  $language = language_default();
-  $send = TRUE;
-
-  $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
-  if ($result != TRUE) {
-    watchdog('pg_gardens_approval', '<p>The gardens approval weekly report e-mail could not be sent.</p>', array(), WATCHDOG_ERROR);
-  }
-}
-
-/**
- * Implements hook_cronapi().
- */
-function pg_gardens_approval_cronapi($op, $job = NULL) {
-  $items['pg_gardens_approval_weekly_email'] = array(
-    'description' => 'Send an e-mail with auto-approved gardens list from previous week every Monday at 5 am.',
-    'rule' => '0 5 * * 1',
-    'callback' => 'pg_gardens_approval_weekly_report_mail_send',
-  );
-
   return $items;
 }
 
-/**
- * Implements hook_node_presave().
- */
-function pg_gardens_approval_node_presave($node) {
-  if (user_access('administer content') || user_access('manage garden approvals')) {
+function drush_pmmitest_imports_distributors_import($csv) {
+  // Define substring matches for Industries Served vocabulary.
+  // The key will be used to create the term if it does not exist.
+  $industries = array(
+    'Beverages' => array(
+      'Soft drink',
+      'juice',
+      'alcohol',
+      'coffee',
+      'tea',
+      'wine',
+      'beer',
+      'brewer',
+      'soda',
+    ),
+    'Breakfast foods' => array(
+      'Cereal',
+      'breakfast',
+      'granola',
+      'pancake',
+      'waffle',
+    ),
+  );
+
+  $industries_vocab = taxonomy_vocabulary_machine_name_load('industries_served');
+  $industries_vid = $industries_vocab->vid;
+
+  foreach ($industries as $key => $value) {
+    $term_check = taxonomy_get_term_by_name($key, 'industries_served');
+    if (!isset($term_check)) {
+      $term = new stdClass();
+      $term->name = $key;
+      $term->vid = $industries_vid;
+      taxonomy_term_save($term);
+      $tids[$key] = $term->tid;
+    }
+    else {
+      $tids[$key] = array_shift($term_check)->tid;
+    }
+  }
+
+  watchdog('pmmitest_imports', 'get csv data', array(), WATCHDOG_NOTICE);
+  $csv_data = csv_to_array($csv);
+  if (empty($csv_data)) {
+    watchdog('pmmitest_imports', 'Could not get CSV data for file @csv', array('@csv' => $csv), WATCHDOG_WARNING);
     return;
   }
 
-  $garden = '';
-  switch ($node->type) {
-    case 'garden_information':
-        $garden = entity_metadata_wrapper('node', $node);
-      break;
-  }
-
-  if (!empty($garden)) {
-    $garden_pass = _pg_gardens_approval_check_required_fields($garden);
-  }
-
-  if (!empty($garden)) {
-    if (!empty($garden_pass) && $garden->field_garden_status->value() == 'Pending') {
-      $garden->field_garden_status = 'Approved';
-      $garden->field_garden_approval_date = time();
-      $garden->field_garden_auto_approved = TRUE;
-      $node->status = 1;
+  foreach ($csv_data as $row) {
+    // Get country ISO code if longer than two characters.
+    $country = $row['Country'];
+    if (strlen($country) > 2) {
+      $country = _pmmitest_imports_fetch_country_iso($country);
     }
-    elseif ((empty($garden_pass) && $garden->field_garden_status->value() == 'Approved')) {
-      $garden->field_garden_status = 'Pending';
-      $garden->field_garden_auto_approved = FALSE;
-      $node->status = 0;
+
+    // Create an Entity.
+    $node = entity_create('node', array('type' => 'distributor'));
+    // Specify the author.
+    $node->uid = 1;
+    // Create a Entity Wrapper of that new Entity.
+    $emw_node = entity_metadata_wrapper('node', $node);
+    // Set the title and field values.
+    $emw_node->title = $row['Distributor company'];
+
+    // Only set country if the ISO code was found.
+    if (isset($country)) {
+      $emw_node->field_distributor_address->country = $country;
     }
+    else {
+      watchdog('pmmitest_imports', 'Could not fetch ISO for @country for distributor with legacy ID @id and nid @nid.', array('@country' => $country, '@id' => $row['ID'], '@nid' => $emw_node->getIdentifier()), WATCHDOG_WARNING);
+    }
+
+    $emw_node->field_distributor_address->thoroughfare = $row['Address 1'];
+    $emw_node->field_distributor_address->premise = $row['Address 2'];
+    $emw_node->field_distributor_address->locality = $row['City'];
+    $emw_node->field_distributor_address->administrative_area = $row['State/Province'];
+    //$emw_node->field_distributor_website->url = $row['Web'];
+
+    // Add 'Beverages' term if substring matches exist.
+    if (_pmmitest_imports_substring_match($industries['Beverages'], $row)) {
+      $emw_node->field_distributor_industries[] = $tids['Beverages'];
+    }
+    // Add 'Breakfast foods' term if substring matches exist.
+    if (_pmmitest_imports_substring_match($industries['Breakfast foods'], $row)) {
+      $emw_node->field_distributor_industries[] = $tids['Breakfast foods'];
+    }
+
+    // Save the node.
+    $emw_node->save();
   }
 }
 
 /**
- * Helper function to determine if required fields have data.
+ * Helper function to determine if row data contains a substring match.
  *
- * @param object $wrapper
- *   The entity metadata wrapper object.
+ * @param array $substring_matches.
+ *   The strings to look for each row.
+ *
+ * @param array $row.
+ *   The row for the source being imported that includes the following headers:
+ *     Industries served
+ *     Industries served other
+ *     Equipment types sold
  *
  * @return boolean
- *   Returns TRUE if all required fields have data and FALSE otherwise.
+ *   Returns TRUE if a match was found and FALSE otherwise.
  */
-function _pg_gardens_approval_check_required_fields($wrapper) {
-  $required_fields = array(
-    'garden_information' => array(
-      'field_address_1',
-      'field_location_type',
-      'field_garden_components',
-    ),
-  );
-
-  if ($wrapper->getBundle() == 'garden_information') {
-    $fields = $required_fields['garden_information'];
-  }
-
-  if ($fields) {
-    foreach ($fields as $field) {
-      $value = NULL;
-      $value = $wrapper->$field->value();
-      if (empty($value)) {
-        // Required field doesn't have data. No need to check other fields.
-        return FALSE;
-      }
+function _pmmitest_imports_substring_match($substring_matches, $row) {
+  foreach ($substring_matches as $substring_match) {
+    if (strpos(strtolower($row['Industries served']), strtolower($substring_match)) !== FALSE || strpos(strtolower($row['Industries served other']), strtolower($substring_match)) !== FALSE || strpos(strtolower($row['Equipment types sold']), strtolower($substring_match)) !== FALSE ) {
+      return TRUE;
     }
   }
+  return FALSE;
+}
 
-  // All required fields have data, so return TRUE.
-  return TRUE;
+/**
+ * Convert a comma separated file into an associated array.
+ * The first row should contain the array keys.
+ *
+ * Example:
+ *
+ * @param string $filename Path to the CSV file
+ * @param string $delimiter The separator used in the file
+ * @return array
+ * @link http://gist.github.com/385876
+ * @author Jay Williams <http://myd3.com/>
+ * @copyright Copyright (c) 2010, Jay Williams
+ * @license http://www.opensource.org/licenses/mit-license.php MIT License
+ */
+function csv_to_array($filename = '', $delimiter = ',') {
+  watchdog('pmmitest_imports', 'converting csv to array', array(), WATCHDOG_NOTICE);
+  if (!file_exists($filename) || !is_readable($filename)) {
+    watchdog('pmmitest_imports', 'File @file does not exist or is not readable.', array('@file' => $filename), WATCHDOG_WARNING);
+    return FALSE;
+  }
+
+  $header = NULL;
+  $data = array();
+  if (($handle = fopen($filename, 'r')) !== FALSE) {
+    while (($row = fgetcsv($handle, 0, $delimiter)) !== FALSE) {
+      if(!$header) {
+        $header = $row;
+      }
+      else {
+        $data[] = array_combine($header, $row);
+      }
+    }
+    fclose($handle);
+  }
+  return $data;
+}
+
+/**
+ * Helper function to fetch a country's ISO code.
+ *
+ * @param string $name
+ *   The full name of the country.
+ *
+ * @return string $country_iso
+ *   The two digit ISO country code.
+ */
+function _pmmitest_imports_fetch_country_iso($country){
+  if(!$country){
+    return FALSE;
+  }
+  require_once DRUPAL_ROOT . '/includes/locale.inc';
+  $countries = country_get_list();
+  $country_iso = array_search(strtolower($country), array_map('strtolower', $countries)); 
+  if (!$country_iso) {
+    return FALSE;
+  }
+  else {
+    return $country_iso;
+  }
 }
