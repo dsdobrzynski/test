@@ -43,7 +43,6 @@ function _pmmitest_analytics_country_counts() {
     ->fieldOrderBy('field_distributor_address', 'country', 'ASC');
   $results = $query->execute();
   $results = array_shift($results);
-  dpm($results);
   
   // Create array of NIDs keyed by country.
   $countries = array();
@@ -58,11 +57,18 @@ function _pmmitest_analytics_country_counts() {
 
   $country_counts = array();
   foreach ($countries as $key => $value) {
-    //dpm(count($value));
     $country_counts[$key] = count($value);
   }
   
   if (!empty($country_counts)) {
     return $country_counts;
   }
+}
+
+function _pmmitest_analytics_industries_avg() {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'distributor')
+    ->propertyCondition('status', NODE_PUBLISHED);
+  $count = $query->count()->execute();
 }
