@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the PMMI Distributors View feature.
+ */
+
+include_once 'pmmi_distributors_view.features.inc';
