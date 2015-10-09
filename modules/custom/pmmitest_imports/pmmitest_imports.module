@@ -8,19 +8,19 @@
 * Implements hook_drush_command().
 */
 function pmmitest_imports_drush_command() {
+  $items = array();
   $items['distributors-import'] = array(
-    'description' => 'Imports distributors from CSV',
+    'description' => dt('Imports distributors from CSV'),
     'arguments' => array(
-      'csv' => 'The path to the csv (relative to the Drupal root).',
+      'csv' => dt('The path to the csv file (relative to the Drupal root).'),
     ),
     'aliases' => array('dist-im'),
     'examples' => array(
-      'drush distributors-import sites/default/files/distributors.csv' => 'Imports distribotrs from the csv file at sites/default/files/distributors.csv.',
+      'drush distributors-import sites/default/files/distributors.csv' => dt('Imports distribotrs from the csv file at sites/default/files/distributors.csv.'),
     ),
   );
   return $items;
 }
-
 
 function drush_pmmitest_imports_distributors_import($csv) {
   // Define substring matches for Industries Served vocabulary.
