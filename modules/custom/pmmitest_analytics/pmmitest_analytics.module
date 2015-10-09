@@ -1,0 +1,68 @@
+<?php
+/**
+ * @file
+ * Main module file for PMMI Test Analytics.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function pmmitest_analytics_menu() {
+  $items = array();
+  $items['analytics'] = array(
+    'title' => t('Distributors Dashboard'),
+    'page callback' => '_pmmitest_analytics_dashboard',
+    'access arguments' => 'Administer content',
+  );
+  return $items;
+}
+
+/**
+ * Page callback for the analytics menu item.
+ */
+function _pmmitest_analytics_dashboard() {
+  $row = 1;
+  $country_counts = _pmmitest_analytics_country_counts();
+
+  $output = "<div class='col-1'>";
+  foreach ($country_counts as $key => $value) {
+    $output .= "<div class='row-$row'><strong>$key</strong>: $value</div>";
+    $row++;
+  }
+  $output .= "</div>";
+  
+  return $output;
+}
+
+function _pmmitest_analytics_country_counts() {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'distributor')
+    ->propertyCondition('status', NODE_PUBLISHED)
+    ->fieldCondition('field_distributor_address', 'country', 'NULL', '!=')
+    ->fieldOrderBy('field_distributor_address', 'country', 'ASC');
+  $results = $query->execute();
+  $results = array_shift($results);
+  dpm($results);
+  
+  // Create array of NIDs keyed by country.
+  $countries = array();
+  foreach ($results as $result) {
+    $node = node_load($result->nid);
+    $wrapper = entity_metadata_wrapper('node', $node);
+    $country = $wrapper->field_distributor_address->country->value();
+    if (!empty($country)) {
+      $countries[$country][] = $wrapper->getIdentifier();
+    }
+  }
+
+  $country_counts = array();
+  foreach ($countries as $key => $value) {
+    //dpm(count($value));
+    $country_counts[$key] = count($value);
+  }
+  
+  if (!empty($country_counts)) {
+    return $country_counts;
+  }
+}

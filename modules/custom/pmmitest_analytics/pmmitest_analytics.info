@@ -1,0 +1,8 @@
+name = "PMMI Test Analytics"
+description = "Provides analytics on distributors."
+package = "pmmitest D7"
+core = "7.x"
+
+dependencies[] = entity
+dependencies[] = pmmi_distributor_content_type
+dependencies[] = pmmi_industries_served_vocabulary

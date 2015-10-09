@@ -12,6 +12,7 @@ dependencies[] = kw_manifests
 dependencies[] = module_filter
 dependencies[] = pmmi_distributor_content_type
 dependencies[] = pmmi_distributors_view
+dependencies[] = pmmitest_analytics
 dependencies[] = pmmitest_imports
 dependencies[] = wysiwyg_advanced_profile
 dependencies[] = wysiwyg_filtered_profile
