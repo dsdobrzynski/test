@@ -51,7 +51,7 @@ function drush_pmmitest_imports_distributors_import($csv) {
 
   foreach ($industries as $key => $value) {
     $term_check = taxonomy_get_term_by_name($key, 'industries_served');
-    if (!isset($term_check)) {
+    if (empty($term_check)) {
       $term = new stdClass();
       $term->name = $key;
       $term->vid = $industries_vid;
