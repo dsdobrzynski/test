@@ -25,6 +25,21 @@ function pmmi_distributor_content_type_field_default_field_bases() {
     'type' => 'addressfield',
   );
 
+  // Exported field_base: 'field_distributor_co_email'
+  $field_bases['field_distributor_co_email'] = array(
+    'active' => 1,
+    'cardinality' => 1,
+    'deleted' => 0,
+    'entity_types' => array(),
+    'field_name' => 'field_distributor_co_email',
+    'indexes' => array(),
+    'locked' => 0,
+    'module' => 'email',
+    'settings' => array(),
+    'translatable' => 0,
+    'type' => 'email',
+  );
+
   // Exported field_base: 'field_distributor_industries'
   $field_bases['field_distributor_industries'] = array(
     'active' => 1,

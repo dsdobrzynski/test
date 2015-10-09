@@ -61,7 +61,46 @@ function pmmi_distributor_content_type_field_default_field_instances() {
         ),
       ),
       'type' => 'addressfield_standard',
-      'weight' => -4,
+      'weight' => 1,
+    ),
+  );
+
+  // Exported field_instance: 'node-distributor-field_distributor_co_email'
+  $field_instances['node-distributor-field_distributor_co_email'] = array(
+    'bundle' => 'distributor',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'inline',
+        'module' => 'email',
+        'settings' => array(),
+        'type' => 'email_default',
+        'weight' => 2,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_distributor_co_email',
+    'label' => 'Company Email',
+    'required' => 0,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'email',
+      'settings' => array(
+        'size' => 60,
+      ),
+      'type' => 'email_textfield',
+      'weight' => 3,
     ),
   );
 
@@ -73,11 +112,11 @@ function pmmi_distributor_content_type_field_default_field_instances() {
     'description' => '',
     'display' => array(
       'default' => array(
-        'label' => 'above',
+        'label' => 'inline',
         'module' => 'taxonomy',
         'settings' => array(),
-        'type' => 'taxonomy_term_reference_link',
-        'weight' => 2,
+        'type' => 'taxonomy_term_reference_plain',
+        'weight' => 3,
       ),
       'teaser' => array(
         'label' => 'above',
@@ -98,7 +137,7 @@ function pmmi_distributor_content_type_field_default_field_instances() {
       'module' => 'options',
       'settings' => array(),
       'type' => 'options_buttons',
-      'weight' => -2,
+      'weight' => 4,
     ),
   );
 
@@ -110,7 +149,7 @@ function pmmi_distributor_content_type_field_default_field_instances() {
     'description' => '',
     'display' => array(
       'default' => array(
-        'label' => 'above',
+        'label' => 'inline',
         'module' => 'link',
         'settings' => array(),
         'type' => 'link_default',
@@ -155,13 +194,14 @@ function pmmi_distributor_content_type_field_default_field_instances() {
       'module' => 'link',
       'settings' => array(),
       'type' => 'link_field',
-      'weight' => -3,
+      'weight' => 2,
     ),
   );
 
   // Translatables
   // Included for use with string extractors like potx.
   t('Address');
+  t('Company Email');
   t('Industries Served');
   t('Website');
 
