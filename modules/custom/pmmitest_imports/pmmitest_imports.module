@@ -7,9 +7,9 @@
 /**
 * Implements hook_drush_command().
 */
-function pmmitest_imports_drush_command(){
+function pmmitest_imports_drush_command() {
   $items['distributors-import'] = array(
-    'description' => "Imports distributors from CSV",
+    'description' => 'Imports distributors from CSV',
     'arguments' => array(
       'csv' => 'The path to the csv (relative to the Drupal root).',
     ),
@@ -22,7 +22,7 @@ function pmmitest_imports_drush_command(){
 }
 
 
-function drush_pmmitest_imports_distributors_import($csv){
+function drush_pmmitest_imports_distributors_import($csv) {
   // Define substring matches for Industries Served vocabulary.
   // The key will be used to create the term if it does not exist.
   $industries = array(
@@ -45,13 +45,12 @@ function drush_pmmitest_imports_distributors_import($csv){
       'waffle',
     ),
   );
-  
+
   $industries_vocab = taxonomy_vocabulary_machine_name_load('industries_served');
   $industries_vid = $industries_vocab->vid;
-  
+
   foreach ($industries as $key => $value) {
     $term_check = taxonomy_get_term_by_name($key, 'industries_served');
-    dpm($term_check);
     if (!isset($term_check)) {
       $term = new stdClass();
       $term->name = $key;
@@ -63,25 +62,21 @@ function drush_pmmitest_imports_distributors_import($csv){
       $tids[$key] = array_shift($term_check)->tid;
     }
   }
-  dpm('tids');
-  dpm($tids);
-  
+
   watchdog('pmmitest_imports', 'get csv data', array(), WATCHDOG_NOTICE);
   $csv_data = csv_to_array($csv);
   if (empty($csv_data)) {
     watchdog('pmmitest_imports', 'Could not get CSV data for file @csv', array('@csv' => $csv), WATCHDOG_WARNING);
     return;
   }
-  dpm($csv_data);
-  
+
   foreach ($csv_data as $row) {
     // Get country ISO code if longer than two characters.
     $country = $row['Country'];
     if (strlen($country) > 2) {
       $country = _pmmitest_imports_fetch_country_iso($country);
     }
-    //watchdog('pmmitest_imports', 'got a row', array(), WATCHDOG_NOTICE);
-    //dpm($row);
+
     // Create an Entity.
     $node = entity_create('node', array('type' => 'distributor'));
     // Specify the author.
@@ -89,7 +84,6 @@ function drush_pmmitest_imports_distributors_import($csv){
     // Create a Entity Wrapper of that new Entity.
     $emw_node = entity_metadata_wrapper('node', $node);
     // Set the title and field values.
-    //dpm($row['Distributor company']);
     $emw_node->title = $row['Distributor company'];
 
     // Only set country if the ISO code was found.
@@ -117,6 +111,7 @@ function drush_pmmitest_imports_distributors_import($csv){
 
     // Save the node.
     $emw_node->save();
+  }
 }
 
 /**
@@ -135,19 +130,8 @@ function drush_pmmitest_imports_distributors_import($csv){
  *   Returns TRUE if a match was found and FALSE otherwise.
  */
 function _pmmitest_imports_substring_match($substring_matches, $row) {
-  $column_headers = array(
-    'Industries served',
-    'Industries served other',
-    'Equipment types sold',
-  );
-  //dpm($column_header);
   foreach ($substring_matches as $substring_match) {
-    dpm("substring_match: $substring_match");
-    dpm("row for $column_header");
-    dpm($row[$column_header]);
     if (strpos(strtolower($row['Industries served']), strtolower($substring_match)) !== FALSE || strpos(strtolower($row['Industries served other']), strtolower($substring_match)) !== FALSE || strpos(strtolower($row['Equipment types sold']), strtolower($substring_match)) !== FALSE ) {
-      dpm('substream match true');
-      dpm($substring_match);
       return TRUE;
     }
   }
